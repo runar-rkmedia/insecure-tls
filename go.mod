@@ -1,4 +1,4 @@
-module github.com/driftnet-io/insecure-tls
+module github.com/runar-rkmedia/insecure-tls
 
 go 1.21.4
 
