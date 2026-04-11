@@ -79,6 +79,7 @@ func InsecureCipherSuites() []*CipherSuite {
 	// This list includes RC4, CBC_SHA256, and 3DES cipher suites. See
 	// cipherSuitesPreferenceOrder for details.
 	return []*CipherSuite{
+		{TLS_RSA_EXPORT_WITH_RC4_40_MD5, "TLS_RSA_EXPORT_WITH_RC4_40_MD5", supportedUpToTLS12, true},
 		{TLS_RSA_WITH_RC4_128_MD5, "TLS_RSA_WITH_RC4_128_MD5", supportedUpToTLS12, true},
 		{TLS_RSA_WITH_RC4_128_SHA, "TLS_RSA_WITH_RC4_128_SHA", supportedUpToTLS12, true},
 		{TLS_RSA_WITH_3DES_EDE_CBC_SHA, "TLS_RSA_WITH_3DES_EDE_CBC_SHA", supportedUpToTLS12, true},
@@ -179,6 +180,9 @@ var cipherSuites = []*cipherSuite{ // TODO: replace with a map, since the order 
 	{TLS_ECDHE_RSA_WITH_RC4_128_SHA, 16, 20, 0, ecdheRSAKA, suiteECDHE, cipherRC4, macSHA1, nil},
 	{TLS_ECDHE_ECDSA_WITH_RC4_128_SHA, 16, 20, 0, ecdheECDSAKA, suiteECDHE | suiteECSign, cipherRC4, macSHA1, nil},
 	{TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA, 24, 20, 8, ecdheECDSAKA, suiteECDHE | suiteECSign, cipher3DES, macSHA1, nil},
+
+	// export
+	{TLS_RSA_EXPORT_WITH_RC4_40_MD5, 5, 16, 0, rsaKA, 0, cipherRC4, macMD5, nil},
 }
 
 // selectCipherSuite returns the first TLS 1.0–1.2 cipher suite from ids which
@@ -308,6 +312,9 @@ var cipherSuitesPreferenceOrder = []uint16{
 	// RC4
 	TLS_ECDHE_ECDSA_WITH_RC4_128_SHA, TLS_ECDHE_RSA_WITH_RC4_128_SHA,
 	TLS_RSA_WITH_RC4_128_SHA, TLS_RSA_WITH_RC4_128_MD5,
+
+	// Export
+	TLS_RSA_EXPORT_WITH_RC4_40_MD5,
 }
 
 var cipherSuitesPreferenceOrderNoAES = []uint16{
@@ -332,6 +339,9 @@ var cipherSuitesPreferenceOrderNoAES = []uint16{
 	TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA256,
 	TLS_ECDHE_ECDSA_WITH_RC4_128_SHA, TLS_ECDHE_RSA_WITH_RC4_128_SHA,
 	TLS_RSA_WITH_RC4_128_SHA, TLS_RSA_WITH_RC4_128_MD5,
+
+	// Export
+	TLS_RSA_EXPORT_WITH_RC4_40_MD5,
 }
 
 // disabledCipherSuites are not used unless explicitly listed in Config.CipherSuites.
@@ -802,4 +812,6 @@ const (
 	// suffix, retained for backward compatibility.
 	TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305   = TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
 	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305 = TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+	// export
+	TLS_RSA_EXPORT_WITH_RC4_40_MD5 = 0x0003
 )

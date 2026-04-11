@@ -112,11 +112,13 @@ const (
 	finishedVerifyLength = 12 // Length of verify_data in a Finished message.
 )
 
-var masterSecretLabel = []byte("master secret")
-var extendedMasterSecretLabel = []byte("extended master secret")
-var keyExpansionLabel = []byte("key expansion")
-var clientFinishedLabel = []byte("client finished")
-var serverFinishedLabel = []byte("server finished")
+var (
+	masterSecretLabel         = []byte("master secret")
+	extendedMasterSecretLabel = []byte("extended master secret")
+	keyExpansionLabel         = []byte("key expansion")
+	clientFinishedLabel       = []byte("client finished")
+	serverFinishedLabel       = []byte("server finished")
+)
 
 func prfAndHashForVersion(version uint16, suite *cipherSuite) (func(result, secret, label, seed []byte), crypto.Hash) {
 	switch version {
@@ -151,12 +153,40 @@ func masterFromPreMasterSecret(version uint16, suite *cipherSuite, preMasterSecr
 	return masterSecret
 }
 
+var (
+	MasterFromPreMasterSecret = masterFromPreMasterSecret
+	Prf10                     = prf10
+)
+
 // extMasterFromPreMasterSecret generates the extended master secret from the
 // pre-master secret. See RFC 7627.
 func extMasterFromPreMasterSecret(version uint16, suite *cipherSuite, preMasterSecret, transcript []byte) []byte {
 	masterSecret := make([]byte, masterSecretLength)
 	prfForVersion(version, suite)(masterSecret, preMasterSecret, extendedMasterSecretLabel, transcript)
 	return masterSecret
+}
+
+// Copy of keysFromMasterSecret, but specified for tls10, and no cipherSuite
+func KeysFromMasterSecretTls10(masterSecret, clientRandom, serverRandom []byte, macLen, keyLen, ivLen int) (clientMAC, serverMAC, clientKey, serverKey, clientIV, serverIV []byte) {
+	seed := make([]byte, 0, len(serverRandom)+len(clientRandom))
+	seed = append(seed, serverRandom...)
+	seed = append(seed, clientRandom...)
+
+	n := 2*macLen + 2*keyLen + 2*ivLen
+	keyMaterial := make([]byte, n)
+	prf10(keyMaterial, masterSecret, keyExpansionLabel, seed)
+	clientMAC = keyMaterial[:macLen]
+	keyMaterial = keyMaterial[macLen:]
+	serverMAC = keyMaterial[:macLen]
+	keyMaterial = keyMaterial[macLen:]
+	clientKey = keyMaterial[:keyLen]
+	keyMaterial = keyMaterial[keyLen:]
+	serverKey = keyMaterial[:keyLen]
+	keyMaterial = keyMaterial[keyLen:]
+	clientIV = keyMaterial[:ivLen]
+	keyMaterial = keyMaterial[ivLen:]
+	serverIV = keyMaterial[:ivLen]
+	return
 }
 
 // keysFromMasterSecret generates the connection keys from the master
@@ -273,8 +303,10 @@ func finishedSum30(md5, sha1 hash.Hash, masterSecret []byte, magic []byte) []byt
 	return ret
 }
 
-var ssl3ClientFinishedMagic = [4]byte{0x43, 0x4c, 0x4e, 0x54}
-var ssl3ServerFinishedMagic = [4]byte{0x53, 0x52, 0x56, 0x52}
+var (
+	ssl3ClientFinishedMagic = [4]byte{0x43, 0x4c, 0x4e, 0x54}
+	ssl3ServerFinishedMagic = [4]byte{0x53, 0x52, 0x56, 0x52}
+)
 
 // clientSum returns the contents of the verify_data member of a client's
 // Finished message.
